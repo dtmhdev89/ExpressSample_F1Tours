@@ -200,27 +200,34 @@ const deleteUser = (req, res) => {
 // app.patch('/api/f1/tours/:id', updateAF1Tour);
 // app.delete('/api/f1/tours/:id', deleteAF1Tour);
 
-app
-  .route('/api/f1/tours')
+
+const tourRouter = express.Router();
+const userRouter = express.Router();
+
+tourRouter
+  .route('/')
   .get(getAllF1Tours)
   .post(createAF1Tour)
 
-app
-  .route('/api/f1/tours/:id')
+tourRouter
+  .route('/:id')
   .get(getAF1Tour)
   .patch(updateAF1Tour)
   .delete(deleteAF1Tour)
 
-app
-  .route('/api/f1/users')
+userRouter
+  .route('/')
   .get(getAllUsers)
   .post(createUser)
 
-app
-  .route('/api/f1/users/:id')
+userRouter
+  .route('/:id')
   .get(getUser)
   .patch(updateUser)
   .delete(deleteUser)
+
+app.use('/api/f1/tours', tourRouter);
+app.use('/api/f1/users', userRouter);
 
 const port = 3000;
 app.listen(port, () => {
