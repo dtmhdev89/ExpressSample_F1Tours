@@ -2,6 +2,21 @@ const fs = require('fs');
 
 const tours = JSON.parse(fs.readFileSync(`${__dirname}/../data/f1tours.json`));
 
+exports.checkId = (req, res, next, val) => {
+  const id = parseInt(req.params.id);
+
+  const tour = tours.find(el => el.id === id);
+  if (!tour) {
+    return res.status(404).json({
+      status: 'failed',
+      message: 'Invalid ID'
+    })
+  }
+  res.locals.tour = tour;
+
+  next();
+};
+
 exports.getAllF1Tours = (req, res) => {
   res.status(200).json({
     status: 'success',
@@ -13,22 +28,10 @@ exports.getAllF1Tours = (req, res) => {
 };
 
 exports.getAF1Tour = (req, res) => {
-  const id = parseInt(req.params.id);
-
-  const tour = tours.find(el => el.id === id);
-
-  if (!tour) {
-    return res.status(404).json({
-      status: 'failed',
-      message: 'Invalid ID'
-    })
-  }
-
-
   res.status(200).json({
     status: 'success',
     data: {
-      tour: tour
+      tour: res.locals.tour
     }
   })
 };
@@ -50,15 +53,7 @@ exports.createAF1Tour = (req, res) => {
 };
 
 exports.updateAF1Tour = (req, res) => {
-  const id = parseInt(req.params.id);
-
-  const updatingTour = tours.find(el => el.id === id);
-  if (!updatingTour) {
-    return res.status(404).json({
-      status: 'failed',
-      message: 'Invalid ID'
-    })
-  }
+  const updatingTour = res.locals.tour;
   Object.assign(updatingTour, req.body);
 
   tours.map(r => (updatingTour.id == r.id) || r);
@@ -74,16 +69,8 @@ exports.updateAF1Tour = (req, res) => {
 };
 
 exports.deleteAF1Tour = (req, res) => {
-  const id = parseInt(req.params.id);
-
-  const deleteTour = tours.find(el => el.id === id);
-  if (!deleteTour) {
-    return res.status(404).json({
-      status: 'failed',
-      message: 'Invalid ID'
-    })
-  }
-  remainTours = tours.filter(function(obj, index, arr){ return obj.id !== id;})
+  const deleteTour = res.locals.tour;
+  remainTours = tours.filter(function(obj, index, arr){ return obj.id !== deleteTour.id;})
 
   fs.writeFile(`${__dirname}/../data/f1tours.json`, JSON.stringify(remainTours), err => {
     res.status(201).json({
@@ -93,4 +80,23 @@ exports.deleteAF1Tour = (req, res) => {
       }
     })
   });
+};
+
+exports.mwCheckBodyParams = (req, res, next) => {
+  const requiredFields = ["name", "unit", "race_distance", "number_of_laps", "circuit_length"];
+  var bodyParams = req.body;
+  var missingParams = [];
+  
+  requiredFields.forEach(field => {
+    if(!bodyParams[field]) missingParams.push(field);
+  })
+  
+  if(missingParams.length > 0) {
+    return res.status(400).json({
+      status: "failed",
+      message: "Missing required params: " + missingParams.join(', ')
+    })
+  }  
+
+  next();
 };
