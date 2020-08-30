@@ -6,7 +6,7 @@ const app = require('./app');
 
 const DB = process.env.MONGODB_LOCAL;
 mongoose.connect(DB, {
-useNewUrlParser: true,
+  useNewUrlParser: true,
   useCreateIndex: true,
   useUnifiedTopology: true,
   useFindAndModify: false
